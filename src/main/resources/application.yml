@@ -1,0 +1,22 @@
+server:
+  port: 8443
+
+service:
+  discovery:
+    userManagementServiceUri: http://localhost:8680
+    eventsServiceUri: http://localhost:8780
+
+management:
+  endpoints:
+    web:
+      base-path: /api-gateway
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
+
+info:
+  app:
+    version: @project.version@
+    serviceName: @project.name@-${info.app.env}
