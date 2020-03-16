@@ -12,7 +12,10 @@ public class RoutesConfig {
   public RouteLocator gatewayRoutes(final RouteLocatorBuilder builder,
       final ServiceDiscoveryProperties serviceDiscoveryProperties) {
     return builder.routes()
-        .route(r -> r.path("/v1/get-out/users/**").uri(serviceDiscoveryProperties.userManagementServiceUri))
+        .route(r -> r.path("/v1/get-out/users/**")
+            .filters(f -> f.circuitBreaker(c -> {}))
+            .uri(serviceDiscoveryProperties.userManagementServiceUri)
+        )
         .route(r -> r.path("/v1/get-out/events").uri(serviceDiscoveryProperties.eventsServiceUri))
 
 //        .route(r -> r.path("/get-out/health")
