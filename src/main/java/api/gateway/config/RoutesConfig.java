@@ -1,5 +1,6 @@
 package api.gateway.config;
 
+import java.time.Duration;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -12,22 +13,36 @@ public class RoutesConfig {
   public RouteLocator gatewayRoutes(final RouteLocatorBuilder builder,
       final ServiceDiscoveryProperties serviceDiscoveryProperties) {
     return builder.routes()
+        .route(r -> r.path("/v1/get-out/events")
+            .filters(f -> f
+                .circuitBreaker(c -> {
+                  c.setFallbackUri("forward:/fallback/v1/get-out/events");
+                })
+                .addResponseHeader("response-service", "event-management"))
+            .uri(serviceDiscoveryProperties.eventsServiceUri))
+
         .route(r -> r.path("/v1/get-out/users/**")
-            .filters(f -> f.circuitBreaker(c -> {}))
-            .uri(serviceDiscoveryProperties.userManagementServiceUri)
+                .filters(f ->
+                        f.retry(retryConfig -> {
+                          retryConfig.setRetries(4);
+                          retryConfig.setBackoff(Duration.ofSeconds(2), Duration.ofSeconds(32), 2, true);
+                        })
+//                f.circuitBreaker(c -> { c.setFallbackUri("forward:/fallback/v1/get-out/users"); })
+                )
+                .uri(serviceDiscoveryProperties.userManagementServiceUri)
         )
-        .route(r -> r.path("/v1/get-out/events").uri(serviceDiscoveryProperties.eventsServiceUri))
 
-//        .route(r -> r.path("/get-out/health")
-//            .filters(f -> f.rewritePath("/get-out/health", "/event-management/health"))
-//            .uri(serviceDiscoveryProperties.eventsServiceUri))
-//        .route(r -> r.path("/get-out/info")
-//            .filters(f -> f.rewritePath("/get-out/info", "/event-management/info"))
-//            .uri(serviceDiscoveryProperties.eventsServiceUri))
-//        .route(r -> r.path("/get-out/**")
-//            .filters(f -> f.rewritePath("/get-out/(?<segment>.*)", "/event-management/${segment}"))
-//            .uri(serviceDiscoveryProperties.eventsServiceUri))
+        .route(r -> r.path("/get-out/**")
+            .filters(f -> f
+                .rewritePath("/get-out/(?<segment>.*)", "/event-management/${segment}")
+                .addResponseHeader("response-service", "event-management"))
+            .uri(serviceDiscoveryProperties.eventsServiceUri))
 
+        .route(r -> r.path("/fallback/v1/get-out/**")
+            .filters(f -> f
+                .rewritePath("/fallback/(?<segment>.*)", "/${segment}")
+                .addResponseHeader("response-service", "monolit-app"))
+            .uri(serviceDiscoveryProperties.fallbackUri))
         .build();
   }
 }

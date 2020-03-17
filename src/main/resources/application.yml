@@ -5,6 +5,7 @@ service:
   discovery:
     userManagementServiceUri: http://localhost:8680
     eventsServiceUri: http://localhost:8780
+    fallbackUri: http://localhost:8880
 
 management:
   endpoints:

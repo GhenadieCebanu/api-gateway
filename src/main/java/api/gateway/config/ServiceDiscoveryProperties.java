@@ -11,5 +11,6 @@ public class ServiceDiscoveryProperties {
 
   public final String userManagementServiceUri;
   public final String eventsServiceUri;
+  public final String fallbackUri;
 
 }
