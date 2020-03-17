@@ -5,6 +5,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 
 @Configuration
 public class RoutesConfig {
@@ -21,13 +22,15 @@ public class RoutesConfig {
                 .addResponseHeader("response-service", "event-management"))
             .uri(serviceDiscoveryProperties.eventsServiceUri))
 
-        .route(r -> r.path("/v1/get-out/users/**")
-                .filters(f ->
-                        f.retry(retryConfig -> {
+        .route(r -> r.path("/v1/get-out/users")
+                .filters(f -> f
+                        .retry(retryConfig -> {
                           retryConfig.setRetries(4);
+                          retryConfig.setStatuses(HttpStatus.GATEWAY_TIMEOUT, HttpStatus.REQUEST_TIMEOUT, HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND);
                           retryConfig.setBackoff(Duration.ofSeconds(2), Duration.ofSeconds(32), 2, true);
                         })
-//                f.circuitBreaker(c -> { c.setFallbackUri("forward:/fallback/v1/get-out/users"); })
+                        .circuitBreaker(c -> {
+                        })
                 )
                 .uri(serviceDiscoveryProperties.userManagementServiceUri)
         )
