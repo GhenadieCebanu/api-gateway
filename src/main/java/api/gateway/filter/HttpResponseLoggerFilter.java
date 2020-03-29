@@ -32,5 +32,4 @@ public class HttpResponseLoggerFilter implements GlobalFilter, Ordered {
     config.setRewriteFunction((serverWebExchange, body) ->  Mono.just(body));
     return filterFactory.apply(config).filter(exchange, chain);
   }
-
 }
