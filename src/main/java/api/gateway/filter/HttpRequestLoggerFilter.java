@@ -26,10 +26,11 @@ public class HttpRequestLoggerFilter implements GlobalFilter, Ordered {
   @Override
   public Mono<Void> filter(final ServerWebExchange exchange, final GatewayFilterChain chain) {
     log.info(LogUtil.formatRequestHeaders(exchange.getRequest()));
+
     final Config config = new Config();
     config.setInClass(byte[].class);
     config.setOutClass(byte[].class);
-    config.setRewriteFunction((serverWebExchange, body) -> Mono.just(body));
+    config.setRewriteFunction((serverWebExchange, body) -> Mono.justOrEmpty(body));
     return filterFactory.apply(config).filter(exchange, chain);
   }
 }

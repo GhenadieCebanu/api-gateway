@@ -1,0 +1,12 @@
+circuit:
+  breaker:
+    timeoutDurationInSeconds: 1
+
+service:
+  discovery:
+    userManagementServiceUri: http://localhost:${wiremock.server.port}
+    eventsServiceUri: http://localhost:${wiremock.server.port}
+    fallbackUri: http://localhost:${wiremock.server.port}
+
+server:
+  port: 0
