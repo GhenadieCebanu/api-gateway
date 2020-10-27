@@ -6,8 +6,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import api.gateway.ApiGatewayApplication;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +33,6 @@ public class RoutesConfigITest {
     setDefaultWireMock();
   }
 
-  public static void setDefaultWireMock() {
-    stubFor(any(anyUrl()).atPriority(10).willReturn(aResponse().withStatus(404)
-        .withBody("{\"status\":\"Error\",\"message\":\"Endpoint not found\"}")));
-  }
-
   @Test
   void shouldHitEventsEndpoint() {
     // Given
@@ -44,6 +41,22 @@ public class RoutesConfigITest {
     // When, Then
     webTestClient.get().uri("/v1/get-out/events").exchange()
         .expectStatus().isOk();
+  }
+
+  @Test
+  void shouldTranslatePostToGet() {
+    // Given
+    stubFor(get("/v1/get-out/users/1").willReturn(ok("Found")));
+
+    // When, Then
+    webTestClient.post().uri("/v1/get-out/users")
+        .contentType(APPLICATION_JSON).bodyValue(Map.of("id","1"))
+        .exchange().expectStatus().isOk();
+  }
+
+  public static void setDefaultWireMock() {
+    stubFor(any(anyUrl()).atPriority(10).willReturn(aResponse().withStatus(404)
+        .withBody("{\"status\":\"Error\",\"message\":\"Endpoint not found\"}")));
   }
 
 }
